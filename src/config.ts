@@ -11,12 +11,6 @@ const envSchema = z.object({
   POSTGRES_CA_CERT_FILEPATH: z.string().optional(),
   CACHE_TTL_MS: z.coerce.number().default(minutesToMilliseconds(30)),
 
-  // Notifier bot
-  BOT_RUN_INTERVAL_MS: z.coerce.number().default(minutesToMilliseconds(2)),
-  BOT_LOOKBACK_INTERVAL_MS: z.coerce
-    .number()
-    .default(minutesToMilliseconds(30)),
-
   // API Client
   BLUESKY_API_ENDPOINT: z.string().default('https://bsky.social'),
   BLUESKY_CLIENT_LOGIN_IDENTIFIER: z.string(),

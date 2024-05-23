@@ -6,6 +6,7 @@ import feedGeneration from './feed-generation';
 import describeGenerator from './describe-generator';
 import { createHealthCheckRoute as healthCheckRoute } from './health-check';
 import wellKnown from './well-known';
+import home from './home';
 import { createServer } from '../lexicon';
 import './configure-morgan';
 import { AppContext } from '../context';
@@ -29,6 +30,7 @@ export function createApi(ctx: AppContext) {
   describeGenerator(server, ctx);
   app.use(server.xrpc.router);
   app.use(wellKnown(ctx));
+  app.use(home(ctx));
   app.get('/health', healthCheckRoute(ctx.db, ctx.firehose));
   app.use(express.static(path.join(__dirname, 'static')));
 

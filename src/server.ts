@@ -8,7 +8,6 @@ import { FirehoseSubscription } from './subscription';
 import { Config } from './config';
 import { createApi } from './api';
 import { AppContext } from './context';
-import { runNotifyBot } from './notify-bot';
 
 export class FeedGenerator {
   public server?: http.Server;
@@ -61,7 +60,7 @@ export class FeedGenerator {
 
     this.firehose.run(this.cfg.SUBSCRIPTION_RECONNECT_DELAY);
     this.server = this.app.listen(this.cfg.PORT, this.cfg.HOST);
-    runNotifyBot(this.ctx);
+
     await events.once(this.server, 'listening');
     return this.server;
   }
