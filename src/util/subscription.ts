@@ -1,8 +1,8 @@
 import { differenceInMilliseconds } from 'date-fns';
-import { Counter, Gauge } from 'prom-client';
+import { Counter, Gauge, Histogram } from 'prom-client';
 import { AsyncIterable } from 'ix';
 import { interval } from 'ix/asynciterable';
-import { filter } from 'ix/asynciterable/operators';
+import { bufferCountOrTime, filter } from 'ix/asynciterable/operators';
 import { Subscription } from '@atproto/xrpc-server';
 import { cborToLexRecord, readCar } from '@atproto/repo';
 import { BlobRef } from '@atproto/lexicon';
@@ -16,6 +16,7 @@ import {
 import { Database } from '../db';
 import logger from '../logger';
 import { bufferTime } from './buffer-time';
+import { sql } from 'kysely';
 
 const commits_handled = new Counter({
   name: 'indexer_commits_handled',
@@ -25,6 +26,12 @@ const commits_handled = new Counter({
 const commit_lag = new Gauge({
   name: 'indexer_commit_lag',
   help: 'Indexer firehose handling lag',
+});
+
+const handle_commits_histogram = new Histogram({
+  name: 'handle_commit',
+  help: 'Handle commit phase',
+  buckets: [5, 10, 25, 50, 100, 250, 500, 1000, 2000, 5000],
 });
 
 export abstract class FirehoseSubscriptionBase {
@@ -56,17 +63,19 @@ export abstract class FirehoseSubscriptionBase {
 
     for await (const commits of AsyncIterable.from(this.sub).pipe(
       filter(isCommit),
-      bufferTime(1000),
+      bufferCountOrTime(5000, 10000),
     )) {
       if (commits.length === 0) {
         continue;
       }
 
+      const endTimer = handle_commits_histogram.startTimer();
       try {
         await this.handleCommits(commits);
       } catch (err) {
         logger.error(err, 'repo subscription could not handle message');
       }
+      endTimer();
 
       const lastEvent = commits.at(-1)!;
       this.lastEventDate = new Date(lastEvent.time);
@@ -89,7 +98,7 @@ export abstract class FirehoseSubscriptionBase {
   async updateCursor(cursor: number) {
     const result = await this.db
       .updateTable('sub_state')
-      .set({ cursor })
+      .set({ cursor: sql`GREATEST("cursor", ${cursor})` })
       .where('service', '=', this.service)
       .executeTakeFirst();
 
