@@ -23,7 +23,7 @@ const envSchema = z.object({
   BLUESKY_CLIENT_LOGIN_PASSWORD: z.string(),
 
   // Indexer
-  FEEDGEN_SUBSCRIPTION_ENDPOINT: z.string().default('wss://bsky.social'),
+  FEEDGEN_SUBSCRIPTION_ENDPOINT: z.string().default('wss://bsky.network'),
   FEEDGEN_HOSTNAME: z.string().default('example.com'),
   FEEDGEN_PUBLISHER_DID: z.string(),
   SUBSCRIPTION_RECONNECT_DELAY: z.number().default(3000),
