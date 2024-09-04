@@ -1,6 +1,7 @@
-FROM node:18.18.2
+FROM node:latest
 WORKDIR /app
 COPY . .
-RUN yarn
+RUN yarn install
+RUN yarn build
 EXPOSE 3000
 CMD ["yarn","dev"]
