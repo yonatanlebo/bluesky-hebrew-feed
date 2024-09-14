@@ -47,7 +47,7 @@ const feeds = [
 ];
 
 const handle = 'avivr.dev';
-const password = 'hghh-4pzy-j43w-7z5q';
+const password = '';
 
 (async () => {
   for (const feed of feeds) {
