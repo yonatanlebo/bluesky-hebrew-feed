@@ -47,16 +47,8 @@ export class FeedGenerator {
     return new FeedGenerator(ctx, app, db, firehose, cfg);
   }
 
-  async loginToBskyAgent() {
-    await this.ctx.bsky.login({
-      identifier: this.ctx.cfg.BLUESKY_CLIENT_LOGIN_IDENTIFIER,
-      password: this.ctx.cfg.BLUESKY_CLIENT_LOGIN_PASSWORD,
-    });
-  }
-
   async start() {
     await migrateToLatest(this.db);
-    await this.loginToBskyAgent();
 
     this.firehose.run(this.cfg.SUBSCRIPTION_RECONNECT_DELAY);
     this.server = this.app.listen(this.cfg.PORT, this.cfg.HOST);
