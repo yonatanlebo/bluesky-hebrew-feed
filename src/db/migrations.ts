@@ -12,6 +12,11 @@ export const migrationProvider: MigrationProvider = {
       '007': optimizeIndexes,
       '008': removeLanguageDefault,
       '009': createNotifiedUsersTable,
+      '010': cursorToString,
+      '011': addCreatedAtToPost,
+      '012': addEffectiveTimestampToPost,
+      '013': optimizeIndexes2,
+      '014': addRecommendedIndexes,
     };
   },
 };
@@ -129,6 +134,83 @@ const createNotifiedUsersTable = {
       .createTable('notified_users')
       .addColumn('did', 'varchar', (c) => c.primaryKey())
       .addColumn('notifiedAt', 'timestamp', (c) => c.defaultTo(sql`NOW()`))
+      .execute();
+  },
+};
+
+const cursorToString = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('sub_state')
+      .alterColumn('cursor', (c) => c.setDataType('varchar'))
+      .execute();
+  },
+};
+
+const addCreatedAtToPost = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('post')
+      .addColumn('createdAt', 'varchar')
+      .execute();
+  },
+};
+
+const addEffectiveTimestampToPost = {
+  async up(db: Kysely<any>) {
+    await db.schema
+      .alterTable('post')
+      .addColumn('effectiveTimestamp', 'varchar')
+      .execute();
+
+    await db
+      .updateTable('post')
+      .set({
+        effectiveTimestamp: sql<string>`LEAST("indexedAt", "createdAt")`,
+      })
+      .execute();
+
+    await db.schema
+      .alterTable('post')
+      .alterColumn('effectiveTimestamp', (c) => c.setNotNull())
+      .execute();
+  },
+};
+
+const optimizeIndexes2 = {
+  async up(db: Kysely<unknown>) {
+    // Should not be needed anymore
+    await db.schema.dropIndex('post_indexedat_index').execute();
+
+    await db.schema
+      .createIndex('post_effectivetimestamp_index')
+      .on('post')
+      .column('effectiveTimestamp')
+      .using('btree')
+      .execute();
+  },
+};
+
+const addRecommendedIndexes = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .createIndex('language_feed_index')
+      .on('post')
+      .columns([
+        'language',
+        'author',
+        'replyTo',
+        'effectiveTimestamp desc',
+        'cid desc',
+      ])
+      .using('btree')
+      .execute();
+
+    await db.schema
+      .createIndex('language_feed_block_subquery_index')
+      .on('post')
+      .columns(['author', 'uri'])
+      .using('btree')
       .execute();
   },
 };
