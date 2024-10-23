@@ -8,35 +8,23 @@ const suffix = '\nהפיד בקוד פתוח! מוזמנים לעקוב ולעז
 
 const feeds = [
   {
-    recordName: 'yiddish-all1',
+    recordName: 'yiddish-all',
     displayName: 'יידיש',
     description:
       "All posts and replies in yiddish.\nThis feed is open source, you're welcome to help!",
     avatar: path.join(__dirname, 'feed-avatars', 'ע.png'),
   },
   {
-    recordName: 'experiment-f1',
+    recordName: 'experiment-feed',
     displayName: 'experiments',
     description: 'Nothing to see here, running experiments.',
     avatar: path.join(__dirname, 'feed-avatars', 'experiment.png'),
   },
   {
-    recordName: 'hebrew-noobs1',
-    displayName: 'עברית חדשים',
-    description: 'כל הפוסטים הראשונים בעברית' + suffix,
-    avatar: path.join(__dirname, 'feed-avatars', 'ח.png'),
-  },
-  {
-    recordName: 'hebrew-feed1',
+    recordName: 'hebrew-feed',
     displayName: 'עברית',
     description: 'כל הפוסטים בעברית (ללא תגובות).' + suffix,
     avatar: path.join(__dirname, 'feed-avatars', 'א.png'),
-  },
-  {
-    recordName: 'hebrew-all1',
-    displayName: 'עברית + תגובות',
-    description: 'כל הפוסטים והתגובות בעברית.' + suffix,
-    avatar: path.join(__dirname, 'feed-avatars', 'ת.png'),
   },
 ];
 
