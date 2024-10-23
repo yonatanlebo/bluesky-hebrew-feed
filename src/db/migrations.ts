@@ -28,7 +28,7 @@ const createTables = {
     await db.schema
       .createTable('sub_state')
       .addColumn('service', 'varchar', (col) => col.primaryKey())
-      .addColumn('cursor', 'string', (col) => col.notNull())
+      .addColumn('cursor', 'integer', (col) => col.notNull())
       .execute();
   },
 };
