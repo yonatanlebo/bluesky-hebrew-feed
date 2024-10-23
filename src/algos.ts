@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import { InvalidRequestError } from '@atproto/xrpc-server';
-import { Selectable, SelectQueryBuilder } from 'kysely';
+import { SelectQueryBuilder } from 'kysely';
 import { addYears } from 'date-fns';
 import {
   QueryParams,
@@ -11,8 +11,6 @@ import { LANGS_HEBREW, LANGS_YIDDISH } from './util/hebrew';
 import { FILTERED_USERS } from './util/userlists';
 import { AppContext } from './context';
 import logger from './logger';
-
-type Post = Selectable<PostSchema>;
 
 function addCursor<T>(
   builder: SelectQueryBuilder<any, any, T>,
@@ -27,10 +25,10 @@ function addCursor<T>(
     throw new InvalidRequestError('malformed cursor');
   }
   const timeStr = new Date(parseInt(indexedAt, 10)).toISOString();
-  return builder.where('effectiveTimestamp', '<=', timeStr);
+  return builder.where('indexedAt', '<=', timeStr);
 }
 
-function renderFeed(posts: Pick<Post, 'effectiveTimestamp' | 'uri'>[]) {
+function renderFeed(posts: Pick<PostSchema, 'indexedAt' | 'uri'>[]) {
   const feed = posts.map((row) => ({
     post: row.uri,
   }));
@@ -38,7 +36,7 @@ function renderFeed(posts: Pick<Post, 'effectiveTimestamp' | 'uri'>[]) {
   let cursor: string | undefined;
   const last = posts.at(-1);
   if (last) {
-    cursor = new Date(last.effectiveTimestamp).getTime().toString();
+    cursor = new Date(last.indexedAt).getTime().toString();
   }
 
   return {
@@ -54,10 +52,10 @@ function createLanguageFeed(
   return async (ctx: AppContext, params: QueryParams, actor?: string) => {
     let builder = ctx.db
       .selectFrom('post')
-      .select(['effectiveTimestamp', 'uri'])
+      .select(['indexedAt', 'uri'])
       .where('language', 'in', languages)
       .where('author', 'not in', FILTERED_USERS)
-      .orderBy('effectiveTimestamp', 'desc')
+      .orderBy('indexedAt', 'desc')
       .orderBy('cid', 'desc')
       .limit(params.limit);
 
@@ -98,16 +96,16 @@ async function firstHebrewPostsFeed(
       eb
         .selectFrom('post')
         .distinctOn('author')
-        .select(['uri', 'effectiveTimestamp'])
+        .select(['uri', 'indexedAt'])
         .where('language', 'in', LANGS_HEBREW)
         .where('post.replyTo', 'is', null)
         .where('author', 'not in', FILTERED_USERS)
         .orderBy('author')
-        .orderBy('effectiveTimestamp', 'asc'),
+        .orderBy('indexedAt', 'asc'),
     )
     .selectFrom('first_posts')
     .selectAll()
-    .orderBy('effectiveTimestamp', 'desc')
+    .orderBy('indexedAt', 'desc')
     .limit(params.limit);
 
   builder = addCursor(builder, params);
