@@ -5,7 +5,6 @@ import { BlockService } from './blocks';
 import { FirehoseSubscription } from './subscription';
 import { Config } from './config';
 import { createApi } from './api';
-import { runNotifyBot } from './notify-bot';
 import { filteredUsersUpdater } from './filtered-users';
 
 export async function runFeedGenerator(cfg: Config): Promise<void> {
